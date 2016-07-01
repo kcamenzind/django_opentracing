@@ -1,19 +1,19 @@
-from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import render
+from django_opentracing import DjangoTracer
 
-from django_opentracing import trace
+import lightstep.tracer
 import opentracing
 
 import urllib2
 
-tracer = settings.TRACER
+tracer = DjangoTracer(lightstep.tracer.init_tracer(group_name="django client", access_token="{your_lightstep_token}"))
 # Create your views here.
 
 def client_index(request):
 	return HttpResponse("Client index page")
 
-@trace
+@tracer.trace("META")
 def client_simple(request):
 	url = "http://localhost:8000/server/simple"
 	new_request = urllib2.Request(url)
@@ -25,7 +25,7 @@ def client_simple(request):
 	except urllib2.URLError as e:  
 		return HttpResponse("Error: " + str(e))
 
-@trace
+@tracer.trace()
 def client_child_span(request):
 	url = "http://localhost:8000/server/childspan"
 	new_request = urllib2.Request(url)
@@ -37,7 +37,7 @@ def client_child_span(request):
 	except urllib2.URLError as e:  
 		return HttpResponse("Error: " + str(e))
 
-@trace
+@tracer.trace()
 def client_log(request):
 	url = "http://localhost:8000/server/log"
 	new_request = urllib2.Request(url)

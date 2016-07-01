@@ -42,7 +42,6 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE_CLASSES = [
-    'django_opentracing.OpenTracingMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -111,9 +110,3 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
 STATIC_URL = '/static/'
-
-# Tracing settings
-
-TRACING = True
-TRACER = DjangoTracer(lightstep.tracer.init_tracer(group_name="django_app", access_token="678ed8df5cb556751a4bfdfa51347666"))
-

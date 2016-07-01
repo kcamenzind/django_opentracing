@@ -2,33 +2,6 @@ from django.conf import settings
 import opentracing
 import sys
 
-# an identifier for traced functions
-trace_identififier = "asd;laksdjf"
-
-def trace(view_func):
-	'''
-	Decorator function used to trace a specific view function.
-	
-	Ex:
-
-	@trace
-	def some_view_func(request):
-		// do some stuff
-		return HttpResponse(args)
-
-	The response of some_view_func will be traced, including
-	continuing the trace if there are injected OT headers in 
-	the request
-
-	'''
-	if hasattr(settings, 'TRACER'):
-		def wrapper(request):
-			return view_func(request)
-		wrapper.__name__ = trace_identififier + view_func.__name__
-		return wrapper
-	else:
-		return view_func
-
 class DjangoTracer(object):
 	'''
 	@param tracer the OpenTracing tracer to be used
@@ -57,48 +30,40 @@ class DjangoTracer(object):
 		for k, v in text_carrier.iteritems():
 			request.add_header(k,v)
 
-class OpenTracingMiddleware(object):
-	'''
-	__init__() is only called once, no arguments, when the Web server responds to the first request
-	'''
-	def __init__(self):
+	def trace(self, *attributes):
 		'''
-		I'm still unclear as to where the tracer should be placed; either in settings or maybe the
-		package __init__ file? Or could also require a tracer file.
+		Function decorator that traces functions
+		NOTE: Must be placed after the @app.route decorator
+
+		@param attributes any number of flask.Request attributes
+		(strings) to be set as tags on the created span
 		'''
-		try:
-			self.tracer = settings.TRACER 
-		except:
-			self.tracer = opentracing.Tracer()
+		def decorator(view_func):
+			def wrapper(request):
+				operation_name = view_func.__name__
+				headers = {}
+				for k,v in request.META.iteritems():
+					k = k.lower().replace('_','-')
+					if k.startswith('http-'):
+						k = k[5:]
+					headers[k] = v				
+				span = None
 
-	def process_view(self, request, view_func, view_args, view_kwargs):
-		if hasattr(settings, 'TRACING'):
-			is_tracing = settings.TRACING
-		else:
-			is_tracing = True
-		if not view_func.__name__.startswith(trace_identififier) or not is_tracing:
-			return None
+				try:
+					span = self.tracer.join(operation_name, opentracing.Format.TEXT_MAP, headers)
+				except:
+					span = self.tracer.start_span(operation_name)
+				self.current_spans[request] = span
+				for attr in attributes:
+					if hasattr(request, attr):
+						payload = str(getattr(request, attr))
+						if payload is not "":
+							span.set_tag(attr, payload)
+				
+				r = view_func(request)
 
-		headers = {}
-		for k, v in request.META.iteritems():
-			k = k.lower().replace('_','-')
-			if k.startswith('http-'):
-				k = k[5:]
-			headers[k] = v
-		span = None
-		
-		operation_name = view_func.__name__[len(trace_identififier):]
-		try:
-			span = self.tracer.tracer.join(operation_name, opentracing.Format.TEXT_MAP, headers)
-		except:
-			span = self.tracer.tracer.start_span(operation_name)
-		
-		self.tracer.current_spans[request] = span
-
-	def process_response(self, request, response):
-		try:
-			span = self.tracer.get_span(request)
-			span.finish()
-		except:
-			pass
-		return response
+				span.finish()
+				self.current_spans.pop(request)
+				return r
+			return wrapper
+		return decorator
