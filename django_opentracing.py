@@ -3,7 +3,7 @@ import opentracing
 import sys
 
 # an identifier for traced functions
-trace_identififier = "opentracing_traced_view"
+trace_identififier = "asd;laksdjf"
 
 def trace(view_func):
 	'''
