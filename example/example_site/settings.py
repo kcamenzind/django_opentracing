@@ -16,7 +16,7 @@ import sys
 sys.path.append("../")
 
 import lightstep.tracer
-from django_opentracing import DjangoTracer
+import django_opentracing
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -120,7 +120,7 @@ STATIC_URL = '/static/'
 
 OPENTRACING = {
     'TRACING': True, # default is true
-    'TRACER': DjangoTracer(lightstep.tracer.init_tracer(group_name="django_app", access_token="{your_lightstep_token}")), # default is opentracing nulltracer
+    'TRACER': django_opentracing.DjangoTracer(lightstep.tracer.init_tracer(group_name="django_app", access_token="{your_lightstep_token}")), # default is opentracing nulltracer
     'TRACED_REQUEST_ATTRIBUTES': ['META'], # default is none
     'TRACE_ALL_REQUESTS': True, # default is false
     # 'TRACE_SINGLE_REQUESTS' = False # this would be for decorator fn's overriding trace_all_requests (to be able to trace individual attributes)
