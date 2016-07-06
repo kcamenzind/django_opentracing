@@ -9,18 +9,18 @@ tracer = settings.OPENTRACING['TRACER']
 def server_index(request):
     return HttpResponse("Hello, world. You're at the server index.")
 
-# @tracer.trace()
+@tracer.trace()
 def server_simple(request):
     return HttpResponse("This is a simple traced request.")
 
-# @tracer.trace()
+@tracer.trace()
 def server_log(request):
     span = tracer.get_span(request)
     if span is not None:
         span.log_event("Hello, world!")
     return HttpResponse("Something was logged")
 
-# @tracer.trace()
+@tracer.trace()
 def server_child_span(request):
     span = tracer.get_span(request)
     if span is not None:
