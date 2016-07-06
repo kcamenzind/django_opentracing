@@ -64,12 +64,12 @@ In order to access the span for a request, we've provided an method `DjangoTrace
 If you want to make an RPC and continue an existing trace, you can inject the current span into the RPC. For example, if making an http request, the following code will continue your trace across the wire:
 
 ```python
-@tracer.trace() 
+@tracer.trace()
 def some_view_func(request):
     new_request = some_http_request
     current_span = tracer.get_span(request)
     tracer.inject_as_headers(current_span, new_request)
     ... # make request
 ```
-Note: `DjangoTracer.inject_as_headers(span, request) is a convenience method that injects the span into an http request's headers`.
+Note: `DjangoTracer.inject_as_headers(span, request)` is a convenience method that injects the span into an http request's headers`.
 
