@@ -71,7 +71,7 @@ class DjangoTracer(object):
         span = None
         operation_name = view_func.__name__
         try:
-            span_ctx = self.tracer.extract(operation_name, opentracing.Format.TEXT_MAP, headers)
+            span_ctx = self.tracer.extract(opentracing.Format.TEXT_MAP, headers)
             span = self.tracer.start_span(operation_name=operation_name, references=opentracing.ChildOf(span_ctx))
         except (opentracing.InvalidCarrierException, opentracing.SpanContextCorruptedException) as e:
             span = self.tracer.start_span(operation_name=operation_name, tags={"Extract failed": str(e)})

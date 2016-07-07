@@ -70,5 +70,5 @@ def some_view_func(request):
     tracer.inject_as_headers(current_span, new_request)
     ... # make request
 ```
-Note: `DjangoTracer.inject_as_headers(span, request)` is a convenience method that injects the span into an http request's headers`.
+Note: `DjangoTracer.inject_as_headers(span, request)` is a convenience method that injects the span into an http request's headers.
 
